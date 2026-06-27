@@ -12,6 +12,7 @@ builder.Services.AddDbContext<CerberusDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddScoped<ScanRequestService>();
+builder.Services.AddScoped<ScanStatusService>();
 
 var app = builder.Build();
 

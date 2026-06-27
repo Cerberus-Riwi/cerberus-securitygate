@@ -1,0 +1,6 @@
+@cerberus_securitygate_HostAddress = http://localhost:5202
+
+GET {{cerberus_securitygate_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

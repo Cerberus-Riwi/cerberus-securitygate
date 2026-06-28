@@ -1,0 +1,24 @@
+# Compilados y artefactos de build (esto fue lo que los originales subieron por error)
+bin/
+obj/
+out/
+*.dll
+*.exe
+*.pdb
+
+# Configuración personal de editores
+.vs/
+.idea/
+*.user
+*.suo
+
+# Secretos y configuración local (NUNCA subir contraseñas)
+appsettings.Development.json
+appsettings.Local.json
+*.env
+.env
+secrets.json
+
+# Logs
+*.log
+logs/

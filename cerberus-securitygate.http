@@ -1,0 +1,19 @@
+@host = http://localhost:5202
+
+GET {{host}}/api/health
+
+###
+
+GET {{host}}/api/ready
+
+###
+
+POST {{host}}/api/scan/request
+Content-Type: application/json
+
+{
+  "repositoryUrl": "https://github.com/Cerberus-Riwi/cerberus-securitygate",
+  "branch": "develop",
+  "commitHash": "a3f2e1d0b4c5e6f7a8b9c0d1e2f3a4b5c6d7e8f9",
+  "requestedAt": "2026-06-27T00:30:00Z"
+}

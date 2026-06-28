@@ -13,26 +13,31 @@ public class ScanController : ControllerBase
     private readonly ScanStatusService _scanStatusService;
     private readonly WebhookService _webhookService;
     private readonly IConfiguration _config;
+    private readonly UrlSafetyValidator _urlValidator;
 
     public ScanController(
-        ScanRequestService scanRequestService,
-        ScanStatusService scanStatusService,
-        WebhookService webhookService,
-        IConfiguration config)
+            ScanRequestService scanRequestService,
+            ScanStatusService scanStatusService,
+            WebhookService webhookService,
+            IConfiguration config,
+            UrlSafetyValidator urlValidator)
     {
         _scanRequestService = scanRequestService;
         _scanStatusService = scanStatusService;
         _webhookService = webhookService;
         _config = config;
+        _urlValidator = urlValidator;
     }
 
     [HttpPost("request")]
-
     [EnableRateLimiting("per-ip")]
     public async Task<IActionResult> CreateScanRequest([FromBody] CreateScanRequestDto dto)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
+
+        if (!_urlValidator.IsSafe(dto.RepositoryUrl))
+            return BadRequest(new { error = "repositoryUrl points to a forbidden or unreachable destination" });
 
         var response = await _scanRequestService.CreateAsync(dto);
         return StatusCode(201, response);

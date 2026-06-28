@@ -1,6 +1,7 @@
 using cerberus_securitygate.DTOs;
 using cerberus_securitygate.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace cerberus_securitygate.Controllers;
 
@@ -26,6 +27,8 @@ public class ScanController : ControllerBase
     }
 
     [HttpPost("request")]
+
+    [EnableRateLimiting("per-ip")]
     public async Task<IActionResult> CreateScanRequest([FromBody] CreateScanRequestDto dto)
     {
         if (!ModelState.IsValid)

@@ -9,6 +9,7 @@ public class CerberusDbContext : DbContext
 
     public DbSet<ScanRequest> ScanRequests => Set<ScanRequest>();
     public DbSet<ScanResult> ScanResults => Set<ScanResult>();
+    public DbSet<Finding> Findings => Set<Finding>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,15 @@ public class CerberusDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedNever();
             entity.Property(e => e.ReceivedAt).HasDefaultValueSql("now()");
+            entity.HasMany(r => r.Findings)
+                  .WithOne()
+                  .HasForeignKey(f => f.ScanResultId);
+        });
+
+        modelBuilder.Entity<Finding>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
         });
     }
 }

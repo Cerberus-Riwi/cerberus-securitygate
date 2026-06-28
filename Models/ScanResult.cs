@@ -25,4 +25,6 @@ public class ScanResult
 
     [Column("received_at")]
     public DateTimeOffset ReceivedAt { get; set; }
+
+    public List<Finding> Findings { get; set; } = new();
 }

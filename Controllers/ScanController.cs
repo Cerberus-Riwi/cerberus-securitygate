@@ -10,11 +10,19 @@ public class ScanController : ControllerBase
 {
     private readonly ScanRequestService _scanRequestService;
     private readonly ScanStatusService _scanStatusService;
+    private readonly WebhookService _webhookService;
+    private readonly IConfiguration _config;
 
-    public ScanController(ScanRequestService scanRequestService, ScanStatusService scanStatusService)
+    public ScanController(
+        ScanRequestService scanRequestService,
+        ScanStatusService scanStatusService,
+        WebhookService webhookService,
+        IConfiguration config)
     {
         _scanRequestService = scanRequestService;
         _scanStatusService = scanStatusService;
+        _webhookService = webhookService;
+        _config = config;
     }
 
     [HttpPost("request")]
@@ -36,5 +44,25 @@ public class ScanController : ControllerBase
             return NotFound(new { error = $"Scan {id} not found" });
 
         return Ok(result);
+    }
+
+    [HttpPost("webhook/result")]
+    public async Task<IActionResult> ReceiveScanResult([FromBody] WebhookScanResultDto dto)
+    {
+        var token = _config["Webhook:InternalToken"];
+        var provided = Request.Headers["X-Internal-Token"].FirstOrDefault();
+
+        if (string.IsNullOrEmpty(token) || provided != token)
+            return Unauthorized(new { error = "Invalid or missing X-Internal-Token" });
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var found = await _webhookService.ProcessScanResultAsync(dto);
+
+        if (!found)
+            return NotFound(new { error = $"Scan {dto.ScanId} not found" });
+
+        return Ok(new { message = "scan-result processed", scanId = dto.ScanId });
     }
 }

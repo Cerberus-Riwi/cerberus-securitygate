@@ -13,6 +13,7 @@ builder.Services.AddDbContext<CerberusDbContext>(options =>
 
 builder.Services.AddScoped<ScanRequestService>();
 builder.Services.AddScoped<ScanStatusService>();
+builder.Services.AddScoped<WebhookService>();
 
 var app = builder.Build();
 

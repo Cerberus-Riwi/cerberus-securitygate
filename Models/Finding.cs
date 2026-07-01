@@ -24,7 +24,10 @@ public class Finding
     public string RuleId { get; set; } = string.Empty;
 
     [Column("file_path")]
-    public string FilePath { get; set; } = string.Empty;
+    public string? FilePath { get; set; }
+
+    [Column("location_url")]
+    public string? LocationUrl { get; set; }
 
     [Column("line_start")]
     public int? LineStart { get; set; }

@@ -10,6 +10,7 @@ public class CerberusDbContext : DbContext
     public DbSet<ScanRequest> ScanRequests => Set<ScanRequest>();
     public DbSet<ScanResult> ScanResults => Set<ScanResult>();
     public DbSet<Finding> Findings => Set<Finding>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -34,6 +35,14 @@ public class CerberusDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Id).ValueGeneratedNever();
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Id).ValueGeneratedNever();
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
         });
     }
 }

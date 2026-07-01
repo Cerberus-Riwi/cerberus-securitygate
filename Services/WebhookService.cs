@@ -2,6 +2,7 @@ using cerberus_securitygate.Data;
 using cerberus_securitygate.DTOs;
 using cerberus_securitygate.Models;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace cerberus_securitygate.Services;
 
@@ -25,6 +26,17 @@ public class WebhookService
         {
             _logger.LogWarning("Webhook received for unknown scanId {ScanId}", dto.ScanId);
             return false;
+        }
+
+        var alreadyProcessed = await _db.ScanResults
+            .AnyAsync(r => r.ScanId == dto.ScanId && r.ServiceId == dto.ServiceId);
+
+        if (alreadyProcessed)
+        {
+            _logger.LogInformation(
+                "Scan-result from {ServiceId} for scan {ScanId} already processed — skipping",
+                dto.ServiceId, dto.ScanId);
+            return true;
         }
 
         var scanResult = new ScanResult
@@ -57,7 +69,17 @@ public class WebhookService
             });
         }
 
-        await _db.SaveChangesAsync();
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })
+        {
+            _logger.LogInformation(
+                "Scan-result from {ServiceId} for scan {ScanId} already existed (concurrent) — treated as processed",
+                dto.ServiceId, dto.ScanId);
+            return true;
+        }
 
         _logger.LogInformation(
             "Processed scan-result from {ServiceId} for scan {ScanId} — status: {Status}, findings: {Count}",

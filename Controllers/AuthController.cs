@@ -70,6 +70,11 @@ public class AuthController : ControllerBase
         if (id is null || email is null || role is null)
             return Unauthorized();
 
+        // Traefik ForwardAuth lee estos headers y los propaga a los servicios internos
+        Response.Headers["X-User-Id"]    = id;
+        Response.Headers["X-User-Email"] = email;
+        Response.Headers["X-User-Role"]  = role;
+
         return Ok(new UserProfileDto { Id = Guid.Parse(id), Email = email, Role = role });
     }
 }

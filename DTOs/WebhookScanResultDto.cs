@@ -37,8 +37,11 @@ public class FindingDto
     [Required]
     public string RuleId { get; set; } = string.Empty;
 
-    [Required]
-    public string FilePath { get; set; } = string.Empty;
+    // filePath es OPCIONAL desde el contrato v1.1.0 (hallazgos DAST/ZAP no lo traen).
+    public string? FilePath { get; set; }
+
+    // locationUrl: URL donde ZAP detectó la vulnerabilidad. Mutuamente excluyente con filePath.
+    public string? LocationUrl { get; set; }
 
     public int? LineStart { get; set; }
     public int? LineEnd { get; set; }

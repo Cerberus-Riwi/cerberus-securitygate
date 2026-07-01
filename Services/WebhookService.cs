@@ -63,6 +63,7 @@ public class WebhookService
                 Description = f.Description,
                 RuleId = f.RuleId,
                 FilePath = f.FilePath,
+                LocationUrl = f.LocationUrl,
                 LineStart = f.LineStart,
                 LineEnd = f.LineEnd,
                 Recommendation = f.Recommendation

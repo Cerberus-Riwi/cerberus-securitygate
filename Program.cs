@@ -5,6 +5,7 @@ using cerberus_securitygate.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,18 +22,20 @@ var jwtSecret = builder.Configuration["Jwt:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret not configured");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "cerberus";
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(opts =>
     {
         opts.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer           = true,
-            ValidateAudience         = true,
-            ValidateLifetime         = true,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer              = jwtIssuer,
-            ValidAudience            = jwtIssuer,
-            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtIssuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         };
     });
 
@@ -54,8 +57,8 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
-                Window      = TimeSpan.FromMinutes(1),
-                QueueLimit  = 0,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
             }));
 
     options.OnRejected = async (context, token) =>
@@ -64,7 +67,7 @@ builder.Services.AddRateLimiter(options =>
         context.HttpContext.Response.Headers.RetryAfter = "60";
         await context.HttpContext.Response.WriteAsJsonAsync(new
         {
-            error            = "Too many requests",
+            error = "Too many requests",
             retryAfterSeconds = 60,
         }, token);
     };
@@ -95,15 +98,15 @@ app.MapControllers();
 
 app.MapGet("/api/health", () => Results.Ok(new
 {
-    status    = "healthy",
-    service   = "SecurityGate",
+    status = "healthy",
+    service = "SecurityGate",
     timestamp = DateTime.UtcNow,
 }));
 
 app.MapGet("/api/ready", () => Results.Ok(new
 {
-    status    = "ready",
-    service   = "SecurityGate",
+    status = "ready",
+    service = "SecurityGate",
     timestamp = DateTime.UtcNow,
 }));
 

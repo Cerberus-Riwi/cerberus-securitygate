@@ -65,7 +65,7 @@ public class AuthController : ControllerBase
     {
         var id    = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value;
         var email = User.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email)?.Value;
-        var role  = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        var role  = User.FindFirst("role")?.Value;
 
         if (id is null || email is null || role is null)
             return Unauthorized();

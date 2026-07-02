@@ -20,20 +20,6 @@ public class ScanListItemDto
     public ScanSummaryDto? Summary       { get; set; }
 }
 
-public class FindingDto
-{
-    public Guid    Id             { get; set; }
-    public string  Severity       { get; set; } = string.Empty;
-    public string  Title          { get; set; } = string.Empty;
-    public string? Description    { get; set; }
-    public string  RuleId         { get; set; } = string.Empty;
-    public string? FilePath       { get; set; }
-    public string? LocationUrl    { get; set; }
-    public int?    LineStart      { get; set; }
-    public int?    LineEnd        { get; set; }
-    public string? Recommendation { get; set; }
-}
-
 public class ScanResultDetailDto
 {
     public string         ServiceId    { get; set; } = string.Empty;

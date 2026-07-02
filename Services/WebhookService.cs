@@ -9,11 +9,14 @@ namespace cerberus_securitygate.Services;
 public class WebhookService
 {
     private readonly CerberusDbContext _db;
+    private readonly IConfiguration _config;
     private readonly ILogger<WebhookService> _logger;
+    private const string Exchange = "cerberus.findings.ready";
 
-    public WebhookService(CerberusDbContext db, ILogger<WebhookService> logger)
+    public WebhookService(CerberusDbContext db, IConfiguration config, ILogger<WebhookService> logger)
     {
         _db = db;
+        _config = config;
         _logger = logger;
     }
 
@@ -86,6 +89,55 @@ public class WebhookService
             "Processed scan-result from {ServiceId} for scan {ScanId} — status: {Status}, findings: {Count}",
             dto.ServiceId, dto.ScanId, dto.Status, dto.Findings.Count);
 
+        await TryPublishFindingsReadyAsync(dto);
+
         return true;
     }
+
+    private async Task TryPublishFindingsReadyAsync(WebhookScanResultDto dto)
+    {
+        var host = _config["RabbitMQ:Host"];
+        var port = int.TryParse(_config["RabbitMQ:Port"], out var p) ? p : 5672;
+        var user = _config["RabbitMQ:User"] ?? "guest";
+        var password = _config["RabbitMQ:Password"] ?? "guest";
+
+        if (string.IsNullOrEmpty(host))
+        {
+            _logger.LogWarning("RabbitMQ:Host not configured — skipping findings.ready publish for scan {ScanId}", dto.ScanId);
+            return;
+        }
+
+        try
+        {
+            await using var publisher = await RabbitMqPublisher.CreateAsync(host, port, user, password, Exchange);
+            await publisher.PublishAsync(BuildMessage(dto), dto.ScanId.ToString());
+            _logger.LogInformation("Published findings.ready for scan {ScanId} from {ServiceId}", dto.ScanId, dto.ServiceId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to publish findings.ready for scan {ScanId} — result persisted, broker fan-out skipped", dto.ScanId);
+        }
+    }
+
+    private static object BuildMessage(WebhookScanResultDto dto) => new
+    {
+        scanId = dto.ScanId,
+        serviceId = dto.ServiceId,
+        status = dto.Status,
+        findings = dto.Findings.Select(f => new
+        {
+            id = f.Id,
+            severity = f.Severity,
+            title = f.Title,
+            description = f.Description,
+            ruleId = f.RuleId,
+            filePath = f.FilePath,
+            locationUrl = f.LocationUrl,
+            lineStart = f.LineStart,
+            lineEnd = f.LineEnd,
+            recommendation = f.Recommendation
+        }),
+        completedAt = dto.CompletedAt,
+        errorMessage = dto.ErrorMessage
+    };
 }

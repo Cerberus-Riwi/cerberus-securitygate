@@ -172,7 +172,7 @@ cerberus-securitygate/
 │   └── ScanController.cs          # Endpoints de escaneo, status y webhook
 ├── Services/
 │   ├── ScanRequestService.cs      # Crea y persiste solicitudes de escaneo
-│   ├── ScanRequestPublisher.cs    # Publica scan-request en RabbitMQ
+│   ├── RabbitMqPublisher.cs       # Publisher fanout reutilizable para RabbitMQ
 │   ├── ScanStatusService.cs       # Calcula el estado de un escaneo
 │   ├── WebhookService.cs          # Procesa y persiste los scan-result entrantes
 │   └── UrlSafetyValidator.cs      # Validación anti-SSRF de URLs

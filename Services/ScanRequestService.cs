@@ -10,6 +10,7 @@ public class ScanRequestService
     private readonly IConfiguration _config;
     private readonly TargetUrlResolver _targetUrlResolver;
     private readonly ILogger<ScanRequestService> _logger;
+    private const string Exchange = "cerberus.scan.requests";
 
     public ScanRequestService(
         CerberusDbContext db,
@@ -66,13 +67,35 @@ public class ScanRequestService
 
         try
         {
-            await using var publisher = await ScanRequestPublisher.CreateAsync(host, port, user, password);
-            await publisher.PublishAsync(scanRequest);
+            await using var publisher = await RabbitMqPublisher.CreateAsync(host, port, user, password, Exchange);
+            await publisher.PublishAsync(BuildMessage(scanRequest), scanRequest.ScanId.ToString());
             _logger.LogInformation("Published scan-request {ScanId} to RabbitMQ", scanRequest.ScanId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to publish scan-request {ScanId} to RabbitMQ", scanRequest.ScanId);
         }
+    }
+
+    private static object BuildMessage(ScanRequest scanRequest)
+    {
+        object? metadata = scanRequest.PrNumber is null && scanRequest.TriggeredBy is null
+            ? null
+            : new
+            {
+                prNumber = scanRequest.PrNumber,
+                triggeredBy = scanRequest.TriggeredBy
+            };
+
+        return new
+        {
+            scanId = scanRequest.ScanId,
+            repositoryUrl = scanRequest.RepositoryUrl,
+            branch = scanRequest.Branch,
+            commitHash = scanRequest.CommitHash,
+            targetUrl = scanRequest.TargetUrl,
+            requestedAt = scanRequest.RequestedAt,
+            metadata
+        };
     }
 }

@@ -48,6 +48,7 @@ builder.Services.AddScoped<ScanStatusService>();
 builder.Services.AddScoped<WebhookService>();
 builder.Services.AddScoped<UrlSafetyValidator>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddSingleton<TargetUrlResolver>();
 
 // ── Rate limiting ─────────────────────────────────────────────────────────────
 builder.Services.AddRateLimiter(options =>

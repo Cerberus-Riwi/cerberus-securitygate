@@ -8,12 +8,18 @@ public class ScanRequestService
 {
     private readonly CerberusDbContext _db;
     private readonly IConfiguration _config;
+    private readonly TargetUrlResolver _targetUrlResolver;
     private readonly ILogger<ScanRequestService> _logger;
 
-    public ScanRequestService(CerberusDbContext db, IConfiguration config, ILogger<ScanRequestService> logger)
+    public ScanRequestService(
+        CerberusDbContext db,
+        IConfiguration config,
+        TargetUrlResolver targetUrlResolver,
+        ILogger<ScanRequestService> logger)
     {
         _db = db;
         _config = config;
+        _targetUrlResolver = targetUrlResolver;
         _logger = logger;
     }
 
@@ -24,6 +30,7 @@ public class ScanRequestService
             ScanId = Guid.NewGuid(),
             RepositoryUrl = dto.RepositoryUrl,
             Branch = dto.Branch,
+            TargetUrl = _targetUrlResolver.Resolve(dto.RepositoryUrl),
             CommitHash = dto.CommitHash,
             RequestedAt = dto.RequestedAt,
             PrNumber = dto.PrNumber,

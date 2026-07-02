@@ -15,6 +15,9 @@ public class ScanRequest
     [Column("branch")]
     public string Branch { get; set; } = string.Empty;
 
+    [NotMapped]
+    public string? TargetUrl { get; set; }
+
     [Column("commit_hash")]
     public string CommitHash { get; set; } = string.Empty;
 

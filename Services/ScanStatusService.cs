@@ -143,7 +143,8 @@ public class ScanStatusService
     private static string ComputeStatus(List<Models.ScanResult> results)
     {
         if (results.Count == 0) return "pending";
-        if (results.All(r => r.Status is "success" or "failed" or "timeout")) return "completed";
-        return "running";
+        if (results.Any(r => r.Status is not ("success" or "failed" or "timeout"))) return "running";
+        if (results.Any(r => r.Status == "success")) return "completed";
+        return "failed";
     }
 }

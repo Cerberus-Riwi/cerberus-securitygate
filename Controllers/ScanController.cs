@@ -43,10 +43,28 @@ public class ScanController : ControllerBase
         return StatusCode(201, response);
     }
 
+    [HttpGet("list")]
+    public async Task<IActionResult> ListScans()
+    {
+        var items = await _scanStatusService.GetListAsync();
+        return Ok(items);
+    }
+
     [HttpGet("{id}/status")]
     public async Task<IActionResult> GetScanStatus(Guid id)
     {
         var result = await _scanStatusService.GetStatusAsync(id);
+
+        if (result is null)
+            return NotFound(new { error = $"Scan {id} not found" });
+
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/details")]
+    public async Task<IActionResult> GetScanDetails(Guid id)
+    {
+        var result = await _scanStatusService.GetDetailsAsync(id);
 
         if (result is null)
             return NotFound(new { error = $"Scan {id} not found" });

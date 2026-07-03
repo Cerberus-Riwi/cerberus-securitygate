@@ -31,6 +31,14 @@ public class WebhookService
             return false;
         }
 
+        await PersistScanResultAsync(dto);
+        await TryPublishFindingsReadyAsync(dto);
+
+        return true;
+    }
+
+    private async Task PersistScanResultAsync(WebhookScanResultDto dto)
+    {
         var alreadyProcessed = await _db.ScanResults
             .AnyAsync(r => r.ScanId == dto.ScanId && r.ServiceId == dto.ServiceId);
 
@@ -39,7 +47,7 @@ public class WebhookService
             _logger.LogInformation(
                 "Scan-result from {ServiceId} for scan {ScanId} already processed — skipping",
                 dto.ServiceId, dto.ScanId);
-            return true;
+            return;
         }
 
         var scanResult = new ScanResult
@@ -82,16 +90,12 @@ public class WebhookService
             _logger.LogInformation(
                 "Scan-result from {ServiceId} for scan {ScanId} already existed (concurrent) — treated as processed",
                 dto.ServiceId, dto.ScanId);
-            return true;
+            return;
         }
 
         _logger.LogInformation(
             "Processed scan-result from {ServiceId} for scan {ScanId} — status: {Status}, findings: {Count}",
             dto.ServiceId, dto.ScanId, dto.Status, dto.Findings.Count);
-
-        await TryPublishFindingsReadyAsync(dto);
-
-        return true;
     }
 
     private async Task TryPublishFindingsReadyAsync(WebhookScanResultDto dto)
@@ -111,7 +115,7 @@ public class WebhookService
         {
             await using var publisher = await RabbitMqPublisher.CreateAsync(host, port, user, password, Exchange);
             await publisher.PublishAsync(BuildMessage(dto), dto.ScanId.ToString());
-            _logger.LogInformation("Published findings.ready for scan {ScanId} from {ServiceId}", dto.ScanId, dto.ServiceId);
+            _logger.LogInformation("Published scan-result {ScanId}/{ServiceId} to {Exchange}", dto.ScanId, dto.ServiceId, Exchange);
         }
         catch (Exception ex)
         {

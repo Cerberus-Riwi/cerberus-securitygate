@@ -31,7 +31,13 @@ public class ScanRequestService
             ScanId = Guid.NewGuid(),
             RepositoryUrl = dto.RepositoryUrl,
             Branch = dto.Branch,
-            TargetUrl = _targetUrlResolver.Resolve(dto.RepositoryUrl),
+            // Prefer the caller-supplied target URL; fall back to the static
+            // ZapScan:TargetUrls ConfigMap mapping when the DTO omits it. This
+            // keeps the existing deployment working until the frontend always
+            // sends targetUrl, at which point the resolver fallback can be dropped.
+            TargetUrl = string.IsNullOrWhiteSpace(dto.TargetUrl)
+                ? _targetUrlResolver.Resolve(dto.RepositoryUrl)
+                : dto.TargetUrl,
             CommitHash = dto.CommitHash,
             RequestedAt = dto.RequestedAt,
             PrNumber = dto.PrNumber,

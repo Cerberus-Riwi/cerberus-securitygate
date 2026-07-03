@@ -19,6 +19,14 @@ public class CreateScanRequestDto
         ErrorMessage = "commitHash must be a 40-character lowercase hex SHA-1")]
     public string CommitHash { get; set; } = string.Empty;
 
+    // Optional: URL that ZAP should scan, chosen by the caller (e.g. the frontend).
+    // When null/empty, ScanRequestService falls back to the ZapScan:TargetUrls
+    // ConfigMap mapping. Only format is validated here; SSRF safety is enforced
+    // in the controller via UrlSafetyValidator.
+    [RegularExpression(@"^https?://.+$",
+        ErrorMessage = "targetUrl must be an absolute http/https URL")]
+    public string? TargetUrl { get; set; }
+
     [Required]
     public DateTimeOffset RequestedAt { get; set; }
 

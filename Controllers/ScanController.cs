@@ -39,6 +39,11 @@ public class ScanController : ControllerBase
         if (!_urlValidator.IsSafe(dto.RepositoryUrl))
             return BadRequest(new { error = "repositoryUrl points to a forbidden or unreachable destination" });
 
+        // targetUrl is optional (falls back to the ZapScan ConfigMap when omitted),
+        // but when supplied it must be SSRF-safe before we hand it to ZAP.
+        if (!string.IsNullOrWhiteSpace(dto.TargetUrl) && !_urlValidator.IsSafe(dto.TargetUrl))
+            return BadRequest(new { error = "targetUrl points to a forbidden or unreachable destination" });
+
         var response = await _scanRequestService.CreateAsync(dto);
         return StatusCode(201, response);
     }
